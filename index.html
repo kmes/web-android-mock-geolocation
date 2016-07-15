@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+
+</head>
+<body>
+<style>
+    .connect-container {
+        position: absolute;
+        top: 0;
+        left:0;
+        right:0;
+        height:40px;
+        padding:10px 10px;
+    }
+    #map_canvas {
+        position: absolute;
+        top:40px;
+        left:0;
+        right:0;
+        bottom:0;
+    }
+</style>
+
+<div class="connect-container">
+    <label for="ipAddress">IP: </label>
+    <input type="text" id="ipAddress" value="192.168.0.5">
+    &nbsp;&nbsp;
+    <label for="port">PORT: </label>
+    <input type="text" id="port" value="5554">
+    &nbsp;&nbsp;
+    <button onClick="setAddressPort( document.getElementById('ipAddress').value, document.getElementById('port').value );">Connect</button>
+</div>
+
+<div id="map_canvas"></div>
+
+<script src="https://maps.googleapis.com/maps/api/js"></script>
+<script src="/socket.io.js"></script>
+<!--<script src="http://code.jquery.com/jquery-1.11.1.js"></script>-->
+<script>
+    var socket = io();
+
+    var sendLocation = function( location ) {
+        socket.emit('location', location);
+    };
+
+    var setAddressPort = function( address, port ) {
+        socket.emit('addressPort', {
+            address: address,
+            port: port
+        });
+    };
+</script>
+<script>
+    var map = new google.maps.Map(document.getElementById('map_canvas'), {
+        zoom: 12,
+        center: new google.maps.LatLng(45.4628328,9.1076926),
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
+
+    var myMarker = new google.maps.Marker({
+        position: new google.maps.LatLng(45.4628328,9.1076926),
+        draggable: true
+    });
+
+    google.maps.event.addListener(myMarker, 'dragend', function (evt) {
+        sendLocation({
+            lat: evt.latLng.lat(),
+            lng: evt.latLng.lng()
+        });
+    });
+
+    map.setCenter(myMarker.position);
+    myMarker.setMap(map);
+</script>
+</body>
+</html>
